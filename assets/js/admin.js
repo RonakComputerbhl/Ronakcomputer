@@ -75,11 +75,27 @@ function ts_wireGoogleSignIn() {
     }
     btn.disabled = true;
     const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).catch(function (err) {
+    const msgEl = document.getElementById('loginStatusMsg');
+    msgEl.textContent = 'Opening Google sign-in… (if nothing opens, allow popups for this site)';
+    // Safety net: never leave the button stuck in the disabled state.
+    const unstick = setTimeout(function () { btn.disabled = false; }, 20000);
+    firebase.auth().signInWithPopup(provider).then(function () {
+      msgEl.textContent = '';
+    }).catch(function (err) {
       console.warn('Ronak Computer: Google sign-in failed', err);
-      document.getElementById('loginStatusMsg').textContent =
-        err.code === 'auth/popup-closed-by-user' ? '' : 'Sign-in failed — please try again.';
-    }).finally(function () { btn.disabled = false; });
+      const host = location.hostname;
+      const known = {
+        'auth/popup-closed-by-user': '',
+        'auth/cancelled-popup-request': '',
+        'auth/popup-blocked': 'Your browser blocked the Google popup. Click the popup-blocked icon in the address bar, choose "Always allow", then try again.',
+        'auth/unauthorized-domain': 'This website address (' + host + ') is not added in Firebase → Authentication → Settings → Authorized domains. Add it there, then try again.',
+        'auth/operation-not-allowed': 'Google sign-in is not enabled in Firebase → Authentication → Sign-in method. Enable Google there.',
+        'auth/network-request-failed': 'Network problem — check your internet connection and try again.',
+        'auth/internal-error': 'Firebase internal error — check the Firebase config in firebase-config.js.',
+        'auth/invalid-api-key': 'Firebase API key is invalid — check firebase-config.js.'
+      };
+      msgEl.textContent = (err.code in known) ? known[err.code] : ('Sign-in failed (' + (err.code || err.message) + '). Please try again.');
+    }).finally(function () { clearTimeout(unstick); btn.disabled = false; });
   });
 }
 
