@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — Ronak Computer</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-topbar">
+  <div class="container">
+    <a class="brand" href="../index.html">
+      <img src="../assets/img/logo.png" alt="Ronak Computer logo">
+      <div class="brand-name">Tech<span style="color:var(--gold-500);">Smart</span> Admin</div>
+    </a>
+    <div class="admin-user-badge" id="adminUserBadge" style="display:none;">
+      <img id="adminUserPhoto" alt="">
+      <div>
+        <strong id="adminUserName"></strong>
+        <span id="adminUserEmail"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <img src="../assets/img/logo.png" alt="Ronak Computer logo">
+    <h1>Admin Login</h1>
+    <p>Sign in with the Google account authorised for this shop to manage laptop &amp; printer listings.</p>
+    <div class="login-error" id="loginError">This Google account isn't authorised for admin access. Please sign in with the correct account.</div>
+    <button type="button" class="btn btn-google btn-block" id="googleSignInBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.66 9c0-.59.1-1.17.29-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+      <span>Sign in with Google</span>
+    </button>
+    <p class="form-note" id="loginStatusMsg"></p>
+    <p class="form-note"><a href="../index.html">← Back to website</a></p>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div class="admin-shell" id="dashboard" style="display:none;">
+  <div class="container">
+
+    <div class="admin-header-row">
+      <div>
+        <h1>Product &amp; Enquiry Manager</h1>
+        <p>Changes sync instantly to every visitor. See the "Settings" tab to manage who has access.</p>
+      </div>
+      <div class="admin-panel-actions">
+        <a class="btn btn-ghost btn-sm" href="../index.html" target="_blank">View Site</a>
+        <button class="btn btn-sm admin-btn-delete" id="logoutBtn">Log Out</button>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card"><strong id="statTotal">0</strong><span>Total products</span></div>
+      <div class="stat-card"><strong id="statLaptops">0</strong><span>Laptops</span></div>
+      <div class="stat-card"><strong id="statPrinters">0</strong><span>Printers</span></div>
+      <div class="stat-card"><strong id="statOut">0</strong><span>Out of stock</span></div>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" data-tab="products">Products</button>
+      <button class="admin-tab-btn" data-tab="leads">Enquiries</button>
+      <button class="admin-tab-btn" data-tab="settings">Settings</button>
+    </div>
+
+    <!-- Products tab -->
+    <div class="admin-tab-panel active" id="tab-products">
+      <p class="form-note" id="viewerNote" style="display:none; margin-bottom:14px;">You're signed in as a <strong>Viewer</strong> — you can see the catalogue but can't add, edit, or delete products.</p>
+      <div class="admin-panel-card">
+        <div class="admin-panel-head">
+          <h2>All products</h2>
+          <div class="admin-panel-actions">
+            <select class="select" id="adminFilterCategory" aria-label="Filter by category">
+              <option value="">All Categories</option>
+              <option value="laptop">Laptops</option>
+              <option value="printer">Printers</option>
+            </select>
+            <button class="btn btn-gold btn-sm" id="addProductBtn">+ Add Product</button>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Photo</th><th>Product</th><th>Configuration</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leads tab -->
+    <div class="admin-tab-panel" id="tab-leads">
+      <div class="admin-panel-card">
+        <div class="admin-panel-head">
+          <h2>Recent enquiries</h2>
+        </div>
+        <p class="form-note" style="margin-top:-8px;">Every enquiry submitted through this website — from any visitor, on any device — appears here in real time. Every enquiry is also always sent to you directly on WhatsApp when the customer taps "Send".</p>
+        <div id="leadsList"></div>
+      </div>
+    </div>
+
+    <!-- Settings tab -->
+    <div class="admin-tab-panel" id="tab-settings">
+      <div class="admin-panel-card" style="max-width:480px; margin-bottom:20px;">
+        <div class="admin-panel-head"><h2>Signed in as</h2></div>
+        <p class="form-note" style="margin-top:-8px;">Access is controlled by Google Sign-In. Admins can add or remove other staff below — no code changes needed.</p>
+        <p class="form-note"><strong id="settingsUserName"></strong><br><span id="settingsUserEmail"></span></p>
+        <button class="btn admin-btn-delete btn-sm" id="settingsLogoutBtn">Log Out</button>
+      </div>
+
+      <div class="admin-panel-card" style="max-width:520px; margin-bottom:20px;" id="usersCard">
+        <div class="admin-panel-head"><h2>Users</h2></div>
+        <p class="form-note" style="margin-top:-8px;"><strong>Admin</strong> — full access, can manage users. <strong>Editor</strong> — can add/edit products, can't delete or reset. <strong>Viewer</strong> — read-only, can see products &amp; enquiries only.</p>
+        <div id="usersList" style="margin-bottom:16px;"></div>
+        <form id="addUserForm" style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+          <div class="field" style="flex:1; min-width:200px; margin-bottom:0;">
+            <label for="newUserEmail">Gmail address</label>
+            <input type="email" id="newUserEmail" required placeholder="someone@gmail.com">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="newUserRole">Role</label>
+            <select class="select" id="newUserRole">
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-navy">Add User</button>
+        </form>
+        <p class="form-note" id="addUserMsg"></p>
+      </div>
+
+      <div class="admin-panel-card" style="max-width:480px;">
+        <div class="admin-panel-head"><h2>Catalogue</h2></div>
+        <p class="form-note" style="margin-top:-8px; margin-bottom:14px;">Reset the product list back to the sample starter products this site shipped with.</p>
+        <button class="btn admin-btn-delete" id="resetCatalogueBtn">Reset to Starter Catalogue</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Product Add/Edit Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width:520px;">
+    <div class="modal-head">
+      <h3 id="productModalTitle">Add Product</h3>
+      <button class="modal-close" data-close-product-modal aria-label="Close">✕</button>
+    </div>
+    <form id="productForm">
+      <div class="form-row">
+        <div class="field">
+          <label for="fCategory">Category</label>
+          <select id="fCategory" name="category" required>
+            <option value="laptop">Laptop</option>
+            <option value="printer">Printer</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fBrand">Brand</label>
+          <input type="text" id="fBrand" name="brand" required placeholder="e.g. HP">
+        </div>
+      </div>
+      <div class="field">
+        <label for="fModel">Model name</label>
+        <input type="text" id="fModel" name="model" required placeholder="e.g. HP 15 Core i5 12th Gen">
+      </div>
+      <div class="field">
+        <label for="fConfig">Configuration / specs</label>
+        <textarea id="fConfig" name="configuration" required placeholder="e.g. Intel Core i5, 8GB RAM, 512GB SSD, 15.6&quot; FHD, Windows 11"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="fPrice">Price (₹)</label>
+          <input type="number" id="fPrice" name="price" required min="0" step="1" placeholder="e.g. 45990">
+        </div>
+        <div class="field">
+          <label for="fStatus">Availability</label>
+          <select id="fStatus" name="status" required>
+            <option value="available">Available</option>
+            <option value="out">Out of Stock</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" name="featured" style="width:auto; margin-right:6px;"> Show in "Featured products" on homepage</label>
+      </div>
+      <div class="field">
+        <label for="imgFile">Product photo</label>
+        <input type="file" id="imgFile" accept="image/*">
+        <div class="field-hint">Upload a photo (under 1.5MB) or paste an image URL below. Leave both empty to use a placeholder image.</div>
+        <input type="text" name="image" placeholder="…or paste an image URL (https://...)" style="margin-top:8px;">
+        <img class="img-preview" id="imgPreview" alt="Preview">
+      </div>
+      <button type="submit" class="btn btn-gold btn-block">Save Product</button>
+    </form>
+  </div>
+</div>
+
+<script>window.TS_ASSET_BASE = '../';</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="../assets/js/firebase-config.js"></script>
+<script src="../assets/js/products-data.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  // Simple tab switching for the dashboard
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+  });
+</script>
+</body>
+</html>

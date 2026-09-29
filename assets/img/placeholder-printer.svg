@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101a42"/>
+      <stop offset="1" stop-color="#0b1330"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg2)"/>
+  <g transform="translate(200,150)">
+    <rect x="-70" y="-50" width="140" height="40" rx="4" fill="none" stroke="#f4b91e" stroke-width="4"/>
+    <rect x="-90" y="-12" width="180" height="70" rx="8" fill="none" stroke="#f4b91e" stroke-width="4"/>
+    <rect x="-55" y="40" width="110" height="46" rx="3" fill="#182456" stroke="#2d7cf0" stroke-width="3"/>
+    <circle cx="62" cy="10" r="4" fill="#2d7cf0"/>
+  </g>
+  <text x="200" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#9aa4c7" letter-spacing="1">PHOTO COMING SOON</text>
+</svg>

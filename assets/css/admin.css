@@ -1,0 +1,107 @@
+/* Ronak Computer — Admin panel styles (loaded after style.css) */
+
+.admin-body{ background:var(--cream-050); min-height:100vh; }
+
+.admin-topbar{
+  background:var(--navy-900); color:var(--white); padding:14px 0;
+}
+.admin-topbar .container{ display:flex; align-items:center; justify-content:space-between; }
+.admin-topbar .brand img{ width:36px; height:36px; }
+.admin-topbar .brand-name{ font-size:1rem; }
+
+.admin-user-badge{ display:flex; align-items:center; gap:10px; }
+.admin-user-badge img{ width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.25); }
+.admin-user-badge div{ display:flex; flex-direction:column; line-height:1.25; }
+.admin-user-badge strong{ font-size:.85rem; color:var(--white); }
+.admin-user-badge span{ font-size:.72rem; color:rgba(255,255,255,.65); }
+@media (max-width:560px){ .admin-user-badge span{ display:none; } }
+
+.btn-google{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:var(--white); color:var(--ink-700, #1c1c1c); border:1px solid rgba(14,18,32,.15);
+}
+.btn-google:hover{ background:var(--cream-100); }
+
+.admin-user-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:10px 12px; border:1px solid rgba(14,18,32,.1); border-radius:10px; margin-bottom:8px;
+}
+.admin-user-row:last-child{ margin-bottom:0; }
+
+/* ---- Login screen ---- */
+.login-wrap{
+  min-height:calc(100vh - 66px); display:flex; align-items:center; justify-content:center; padding:40px 20px;
+}
+.login-card{
+  width:100%; max-width:400px; background:var(--white); border-radius:var(--radius-l);
+  padding:38px; box-shadow:var(--shadow-pop); text-align:center;
+}
+.login-card img{ width:60px; height:60px; margin:0 auto 16px; border-radius:14px; }
+.login-card h1{ font-size:1.3rem; }
+.login-card p{ font-size:.88rem; margin:0 auto 20px; }
+#loginHint{ font-size:.78rem; color:var(--ink-500); background:var(--cream-100); padding:8px 12px; border-radius:8px; margin-bottom:18px; }
+.login-error{
+  display:none; background:var(--danger-050); color:var(--danger-600); padding:10px 14px; border-radius:8px;
+  font-size:.85rem; margin-bottom:14px; text-align:left; font-weight:600;
+}
+
+/* ---- Dashboard ---- */
+.admin-shell{ padding:36px 0 80px; }
+.admin-header-row{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:26px; }
+.admin-header-row h1{ font-size:1.5rem; margin-bottom:4px; }
+.admin-header-row p{ margin:0; font-size:.9rem; }
+
+.stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:30px; }
+@media (max-width:760px){ .stat-row{ grid-template-columns:1fr 1fr; } }
+.stat-card{ background:var(--white); border-radius:var(--radius-m); padding:20px 22px; box-shadow:var(--shadow-card); }
+.stat-card strong{ display:block; font-family:var(--font-head); font-size:1.7rem; color:var(--navy-900); }
+.stat-card span{ font-size:.8rem; color:var(--ink-500); font-weight:600; }
+
+.admin-tabs{ display:flex; gap:6px; margin-bottom:22px; border-bottom:2px solid rgba(14,18,32,.08); }
+.admin-tab-btn{
+  background:none; border:0; padding:12px 18px; font-family:var(--font-head); font-weight:600;
+  font-size:.92rem; color:var(--ink-500); border-bottom:2px solid transparent; margin-bottom:-2px;
+}
+.admin-tab-btn.active{ color:var(--navy-900); border-color:var(--gold-500); }
+.admin-tab-panel{ display:none; }
+.admin-tab-panel.active{ display:block; }
+
+.admin-panel-card{ background:var(--white); border-radius:var(--radius-m); box-shadow:var(--shadow-card); padding:24px; }
+.admin-panel-head{ display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:20px; }
+.admin-panel-head h2{ font-size:1.1rem; margin:0; }
+.admin-panel-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+.admin-table-wrap{ overflow-x:auto; }
+table.admin-table{ width:100%; border-collapse:collapse; min-width:720px; }
+.admin-table th{
+  text-align:left; font-family:var(--font-head); font-size:.78rem; text-transform:none;
+  color:var(--ink-500); padding:10px 12px; border-bottom:2px solid rgba(14,18,32,.08);
+}
+.admin-table td{ padding:12px; border-bottom:1px solid rgba(14,18,32,.06); vertical-align:middle; font-size:.9rem; }
+.admin-cell-img img{ width:56px; height:44px; object-fit:cover; border-radius:6px; background:var(--cream-100); }
+.admin-config-cell{ max-width:260px; }
+.admin-muted{ color:var(--ink-500); font-size:.82rem; }
+.admin-actions-cell{ white-space:nowrap; }
+.admin-empty{ text-align:center; padding:40px; color:var(--ink-500); }
+
+.admin-pill{ font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; font-family:var(--font-head); }
+.admin-pill-ok{ background:var(--ok-050); color:var(--ok-600); }
+.admin-pill-out{ background:var(--danger-050); color:var(--danger-600); }
+
+.admin-btn-delete{ background:var(--danger-050); color:var(--danger-600); }
+.admin-btn-delete:hover{ background:var(--danger-600); color:var(--white); }
+
+.lead-row{
+  display:flex; justify-content:space-between; align-items:flex-start; gap:14px; padding:14px 0;
+  border-bottom:1px solid rgba(14,18,32,.06); font-size:.9rem;
+}
+.lead-detail{ margin-top:2px; }
+.lead-date{ white-space:nowrap; font-size:.76rem; }
+
+.img-preview{ width:100%; max-width:220px; border-radius:10px; margin-top:10px; display:none; border:1px solid rgba(14,18,32,.08); }
+.admin-msg-ok{ color:var(--ok-600); }
+.admin-msg-error{ color:var(--danger-600); }
+
+@media (max-width:600px){
+  .admin-header-row{ flex-direction:column; align-items:flex-start; }
+}
