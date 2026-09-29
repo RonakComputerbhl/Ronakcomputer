@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.ronakcomputerbhilwara.com/</loc>
+    <loc>https://ronakcomputer.vercel.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.ronakcomputerbhilwara.com/laptops.html</loc>
+    <loc>https://ronakcomputer.vercel.app/laptops.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.ronakcomputerbhilwara.com/printers.html</loc>
+    <loc>https://ronakcomputer.vercel.app/printers.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.ronakcomputerbhilwara.com/services.html</loc>
+    <loc>https://ronakcomputer.vercel.app/services.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.ronakcomputerbhilwara.com/about.html</loc>
+    <loc>https://ronakcomputer.vercel.app/about.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.ronakcomputerbhilwara.com/contact.html</loc>
+    <loc>https://ronakcomputer.vercel.app/contact.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

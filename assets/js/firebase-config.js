@@ -44,4 +44,12 @@ const TS_FIREBASE_CONFIG = {
    managed from the Settings → Users tab inside the admin panel
    itself, once you're signed in.
    ============================================================ */
-const TS_BOOTSTRAP_ADMIN_EMAIL = "ronakcomputerbhl@gmail.com";
+const TS_BOOTSTRAP_ADMIN_EMAILS = [
+  "ronakcomputerbhl@gmail.com",
+  "techpoint.chandu@gmail.com"
+];
+// Kept for backward compatibility (first owner email)
+const TS_BOOTSTRAP_ADMIN_EMAIL = TS_BOOTSTRAP_ADMIN_EMAILS[0];
+function ts_isOwnerEmail(email) {
+  return TS_BOOTSTRAP_ADMIN_EMAILS.some(e => e.toLowerCase() === String(email || '').toLowerCase());
+}

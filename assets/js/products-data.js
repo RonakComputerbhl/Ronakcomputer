@@ -364,6 +364,27 @@ const TSData = (function () {
     return function () {};
   }
 
+
+  /* ---- Website visitors: every page view on the public site is
+     logged to the Firestore "visits" collection (cloud mode only) so
+     the admin panel's Visitors tab can show who is visiting. ---- */
+  function saveVisit(visit) {
+    if (!_cloudMode) return;
+    _db.collection('visits').add(visit).catch(function (err) {
+      console.warn('Ronak Computer: could not log visit', err);
+    });
+  }
+
+  function subscribeVisits(fn, limit) {
+    if (!_cloudMode) { fn([], false); return function () {}; }
+    return _db.collection('visits').orderBy('date', 'desc').limit(limit || 500).onSnapshot(function (snap) {
+      fn(snap.docs.map(d => Object.assign({ id: d.id }, d.data())), true);
+    }, function (err) {
+      console.warn('Ronak Computer: could not load visitors (check Firestore rules / sign-in)', err);
+      fn([], false);
+    });
+  }
+
   /* ---- Staff roles (Admin / Editor / Viewer), stored in Firestore
      so they can be managed from the Settings → Users tab without
      ever touching code. Not available in local-only mode (no cloud
@@ -410,6 +431,7 @@ const TSData = (function () {
     getAll, getByCategory, getById, getFeatured,
     save, remove, resetToDefaults, makeId, fmtPrice,
     saveLead, getLeads, subscribeLeads,
+    saveVisit, subscribeVisits,
     getMyRole, subscribeAdmins, setUserRole, removeUserRole
   };
 })();

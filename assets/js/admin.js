@@ -16,6 +16,7 @@
 let ts_currentUser = null;
 let ts_currentRole = null; // 'admin' | 'editor' | 'viewer'
 let ts_unsubAdmins = null;
+let ts_unsubVisits = null;
 
 document.addEventListener('DOMContentLoaded', function () {
   ts_injectYear();
@@ -42,7 +43,7 @@ function ts_watchAuthState() {
       return;
     }
     const email = (user.email || '').toLowerCase();
-    if (email === TS_BOOTSTRAP_ADMIN_EMAIL.toLowerCase()) {
+    if (ts_isOwnerEmail(email)) {
       ts_currentUser = user; ts_currentRole = 'admin';
       document.getElementById('loginError').style.display = 'none';
       ts_showDashboard(user);
@@ -95,6 +96,7 @@ function ts_showLoginScreen() {
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('adminUserBadge').style.display = 'none';
   if (ts_unsubAdmins) { ts_unsubAdmins(); ts_unsubAdmins = null; }
+  if (ts_unsubVisits) { ts_unsubVisits(); ts_unsubVisits = null; }
 }
 
 const TS_ROLE_LABEL = { admin: 'Admin', editor: 'Editor', viewer: 'Viewer' };
@@ -123,7 +125,10 @@ function ts_showDashboard(user) {
     ts_unsubAdmins = TSData.subscribeAdmins(ts_renderUsersList);
   }
 
+  try { localStorage.setItem('ts_is_admin', '1'); } catch (e) {}   // don't count the owner's own visits
   TSData.subscribeLeads(ts_renderLeads);
+  if (ts_unsubVisits) ts_unsubVisits();
+  ts_unsubVisits = TSData.subscribeVisits(ts_renderVisitors, 500);
   // Re-renders on first load AND every time products change anywhere
   // (this device, another device, a customer's device — any edit
   // reaches this table live, without a page refresh).
@@ -360,10 +365,10 @@ function ts_wireResetCatalogue() {
 function ts_renderUsersList(users) {
   const wrap = document.getElementById('usersList');
   if (!wrap) return;
-  const bootstrapRow = `
+  const bootstrapRow = TS_BOOTSTRAP_ADMIN_EMAILS.map(e => `
     <div class="admin-user-row">
-      <div><strong>${ts_escape(TS_BOOTSTRAP_ADMIN_EMAIL)}</strong><br><span class="admin-muted">Admin · owner account, can't be removed here</span></div>
-    </div>`;
+      <div><strong>${ts_escape(e)}</strong><br><span class="admin-muted">Admin · owner account, can't be removed here</span></div>
+    </div>`).join('');
   const otherRows = (users || []).map(u => `
     <div class="admin-user-row">
       <div><strong>${ts_escape(u.email)}</strong><br><span class="admin-muted">${TS_ROLE_LABEL[u.role] || u.role}</span></div>
@@ -381,7 +386,7 @@ function ts_wireAddUserForm() {
     const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
     const role = document.getElementById('newUserRole').value;
     const msg = document.getElementById('addUserMsg');
-    if (!email || email === TS_BOOTSTRAP_ADMIN_EMAIL.toLowerCase()) {
+    if (!email || ts_isOwnerEmail(email)) {
       msg.textContent = 'Enter a valid Gmail address (different from the owner account).';
       msg.className = 'form-note admin-msg-error';
       return;
@@ -424,4 +429,57 @@ function ts_renderLeads(leads) {
       <span class="admin-muted lead-date">${new Date(l.date).toLocaleString('en-IN')}</span>
     </div>
   `).join('');
+}
+
+
+/* ---------------- Website visitors ---------------- */
+
+let ts_visitsAll = [];
+function ts_renderVisitors(visits, ok) {
+  ts_visitsAll = visits || [];
+  const note = document.getElementById('visitorsNote');
+  if (note) {
+    note.style.display = (ok === false) ? 'block' : 'none';
+  }
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+  const now = Date.now();
+  const todayStr = new Date().toDateString();
+  const today = ts_visitsAll.filter(v => new Date(v.date).toDateString() === todayStr);
+  const uniq = arr => new Set(arr.map(v => v.visitorId)).size;
+  const online = ts_visitsAll.filter(v => now - new Date(v.date).getTime() < 5 * 60 * 1000);
+
+  set('vsToday', today.length);
+  set('vsTodayUniq', uniq(today));
+  set('vsOnline', uniq(online));
+  set('vsTotal', ts_visitsAll.length);
+  set('vsUniq', uniq(ts_visitsAll));
+
+  // Top pages
+  const counts = {};
+  ts_visitsAll.forEach(v => { counts[v.page] = (counts[v.page] || 0) + 1; });
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const topEl = document.getElementById('vsTopPages');
+  if (topEl) topEl.innerHTML = top.length
+    ? top.map(t => `<div class="admin-user-row"><div><strong>${ts_escape(t[0])}</strong></div><span class="admin-muted">${t[1]} views</span></div>`).join('')
+    : '<div class="admin-empty">No visits yet.</div>';
+
+  // Recent visitors table
+  const body = document.getElementById('visitorsBody');
+  if (!body) return;
+  if (!ts_visitsAll.length) {
+    body.innerHTML = '<tr><td colspan="6" class="admin-empty">No visitors recorded yet. Open the website in another browser/phone and refresh this tab.</td></tr>';
+    return;
+  }
+  body.innerHTML = ts_visitsAll.slice(0, 100).map(v => {
+    const loc = [v.city, v.region, v.country].filter(Boolean).join(', ') || '—';
+    return `<tr>
+      <td class="admin-muted" style="white-space:nowrap;">${new Date(v.date).toLocaleString('en-IN')}</td>
+      <td><strong>${ts_escape(v.page || '/')}</strong></td>
+      <td>${ts_escape(loc)}</td>
+      <td class="admin-muted">${ts_escape(v.device || '')} · ${ts_escape(v.browser || '')} · ${ts_escape(v.os || '')}</td>
+      <td class="admin-muted">${ts_escape(v.source || 'Direct')}</td>
+      <td><span class="admin-pill ${v.returning ? 'admin-pill-ok' : 'admin-pill-out'}" style="${v.returning ? '' : 'background:#e8f0ff;color:#1d4ed8;'}">${v.returning ? 'Returning' : 'New'}</span></td>
+    </tr>`;
+  }).join('');
 }

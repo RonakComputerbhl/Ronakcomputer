@@ -105,3 +105,6 @@ table.admin-table{ width:100%; border-collapse:collapse; min-width:720px; }
 @media (max-width:600px){
   .admin-header-row{ flex-direction:column; align-items:flex-start; }
 }
+
+/* Visitors stats: 5 cards on desktop, wrap on small screens */
+@media (max-width:900px){ #tab-visitors .stat-row{ grid-template-columns:1fr 1fr !important; } }

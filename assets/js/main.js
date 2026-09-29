@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
   ts_safe(ts_wireContactForm);
   ts_safe(ts_wireCursorGlow);
   ts_safe(ts_wireSpotlights);
+  ts_safe(ts_trackVisit);
 
   if (document.getElementById('featuredGrid')) ts_safe(ts_renderFeatured);
   if (document.getElementById('productGrid')) ts_safe(ts_renderCatalogue);
@@ -346,4 +347,99 @@ function ts_wireContactForm() {
     const success = document.getElementById('contactSuccess');
     if (success) success.classList.add('show');
   });
+}
+
+
+/* ============================================================
+   Visitor tracking — logs each page view (once per page per
+   browser session) to Firestore so it shows in Admin → Visitors.
+   Stores: page, device/browser/OS, approximate city & country,
+   where they came from, and an anonymous visitor ID. It does NOT
+   store IP addresses, names or any personal details.
+   Skipped on the admin panel and on any browser where the owner
+   has logged into the admin panel (so your own visits don't count).
+   ============================================================ */
+function ts_trackVisit() {
+  if (window.TS_ASSET_BASE) return;                       // admin page
+  if (/\/admin(\/|$)/.test(location.pathname)) return;
+  if (location.protocol === 'file:') return;
+  try { if (localStorage.getItem('ts_is_admin') === '1') return; } catch (e) {}
+
+  const page = (location.pathname.replace(/\/index\.html$/, '/') || '/') ;
+  const flagKey = 'ts_visit_' + page;
+  try { if (sessionStorage.getItem(flagKey)) return; sessionStorage.setItem(flagKey, '1'); } catch (e) {}
+
+  let vid = null, returning = false;
+  try {
+    vid = localStorage.getItem('ts_vid');
+    if (vid) returning = true;
+    else { vid = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem('ts_vid', vid); }
+  } catch (e) { vid = 'v' + Math.random().toString(36).slice(2, 10); }
+
+  const ua = navigator.userAgent || '';
+  let browser = 'Other';
+  if (/Edg\//.test(ua)) browser = 'Edge';
+  else if (/OPR\/|Opera/.test(ua)) browser = 'Opera';
+  else if (/SamsungBrowser/.test(ua)) browser = 'Samsung Internet';
+  else if (/Chrome\//.test(ua)) browser = 'Chrome';
+  else if (/Firefox\//.test(ua)) browser = 'Firefox';
+  else if (/Safari\//.test(ua)) browser = 'Safari';
+  let os = 'Other';
+  if (/Android/.test(ua)) os = 'Android';
+  else if (/iPhone|iPad|iPod/.test(ua)) os = 'iOS';
+  else if (/Windows/.test(ua)) os = 'Windows';
+  else if (/Mac OS X/.test(ua)) os = 'macOS';
+  else if (/Linux/.test(ua)) os = 'Linux';
+  const device = /Mobi|Android|iPhone/.test(ua) ? 'Mobile' : (/iPad|Tablet/.test(ua) ? 'Tablet' : 'Desktop');
+
+  let source = 'Direct';
+  try {
+    if (document.referrer) {
+      const host = new URL(document.referrer).hostname;
+      source = host === location.hostname ? 'Internal' : host.replace(/^www\./, '');
+    }
+    const utm = new URLSearchParams(location.search).get('utm_source');
+    if (utm) source = utm;
+  } catch (e) {}
+
+  const base = {
+    date: new Date().toISOString(),
+    page: page,
+    title: document.title || '',
+    visitorId: vid,
+    returning: returning,
+    device: device, browser: browser, os: os,
+    screen: (window.screen ? screen.width + 'x' + screen.height : ''),
+    language: navigator.language || '',
+    timezone: (Intl.DateTimeFormat().resolvedOptions().timeZone) || '',
+    source: source
+  };
+
+  function send(geo) {
+    const visit = Object.assign({}, base, geo || {});
+    // TSData may still be connecting to Firestore — retry briefly.
+    let tries = 0;
+    (function attempt() {
+      if (typeof TSData !== 'undefined' && TSData.isCloud()) { TSData.saveVisit(visit); return; }
+      if (++tries < 20) setTimeout(attempt, 500);
+    })();
+  }
+
+  // Approximate location from a free geo-IP service (city / region / country only).
+  // If it's blocked or slow we still log the visit, just without location.
+  let geo = null;
+  try { geo = JSON.parse(sessionStorage.getItem('ts_geo') || 'null'); } catch (e) {}
+  if (geo) { send(geo); return; }
+  const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const timer = setTimeout(function () { if (ctrl) ctrl.abort(); send(null); }, 3500);
+  let done = false;
+  fetch('https://ipapi.co/json/', ctrl ? { signal: ctrl.signal } : {})
+    .then(r => r.json())
+    .then(function (j) {
+      if (done) return; done = true; clearTimeout(timer);
+      const g = { city: j.city || '', region: j.region || '', country: j.country_name || '' };
+      try { sessionStorage.setItem('ts_geo', JSON.stringify(g)); } catch (e) {}
+      send(g);
+    })
+    .catch(function () { if (done) return; done = true; clearTimeout(timer); send(null); });
 }

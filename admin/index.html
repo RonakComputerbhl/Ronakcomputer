@@ -70,6 +70,7 @@
 
     <div class="admin-tabs">
       <button class="admin-tab-btn active" data-tab="products">Products</button>
+      <button class="admin-tab-btn" data-tab="visitors">Visitors</button>
       <button class="admin-tab-btn" data-tab="leads">Enquiries</button>
       <button class="admin-tab-btn" data-tab="settings">Settings</button>
     </div>
@@ -95,6 +96,32 @@
               <tr><th>Photo</th><th>Product</th><th>Configuration</th><th>Price</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visitors tab -->
+    <div class="admin-tab-panel" id="tab-visitors">
+      <p class="form-note" id="visitorsNote" style="display:none; margin-bottom:14px;">Visitor data couldn't be loaded. Check that the Firestore rules include the <strong>visits</strong> section (see README) and that you're signed in.</p>
+      <div class="stat-row" style="grid-template-columns:repeat(5,1fr);">
+        <div class="stat-card"><strong id="vsOnline">0</strong><span>Online now (5 min)</span></div>
+        <div class="stat-card"><strong id="vsToday">0</strong><span>Views today</span></div>
+        <div class="stat-card"><strong id="vsTodayUniq">0</strong><span>Visitors today</span></div>
+        <div class="stat-card"><strong id="vsTotal">0</strong><span>Views (last 500)</span></div>
+        <div class="stat-card"><strong id="vsUniq">0</strong><span>Unique visitors</span></div>
+      </div>
+      <div class="admin-panel-card" style="margin-bottom:20px;">
+        <div class="admin-panel-head"><h2>Most visited pages</h2></div>
+        <div id="vsTopPages"></div>
+      </div>
+      <div class="admin-panel-card">
+        <div class="admin-panel-head"><h2>Recent visitors</h2></div>
+        <p class="form-note" style="margin-top:-8px;">Live list of who is visiting the website — page, approximate location, device and where they came from. No IP address or personal details are stored. Your own visits from this browser are not counted.</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Time</th><th>Page</th><th>Location</th><th>Device</th><th>Source</th><th>Type</th></tr></thead>
+            <tbody id="visitorsBody"></tbody>
           </table>
         </div>
       </div>

@@ -44,7 +44,7 @@ Any of these work — pick whichever is easiest for you:
 **Option A — Netlify (free, easiest, no technical skill needed)**
 1. Go to [app.netlify.com/drop](https://app.netlify.com/drop)
 2. Drag the whole `ronakcomputer` folder onto the page
-3. Netlify gives you a live link in seconds. You can later connect your own domain name (e.g. `ronakcomputerbhilwara.com`) from Netlify's "Domain settings".
+3. Netlify gives you a live link in seconds. You can later connect your own domain name from Netlify's "Domain settings".
 
 **Option B — Your own hosting (GoDaddy, Hostinger, BigRock, etc.)**
 1. Buy hosting + a domain name if you don't have one already
@@ -58,8 +58,8 @@ Any of these work — pick whichever is easiest for you:
 3. In the repository's Settings → Pages, enable GitHub Pages on the main branch
 4. GitHub gives you a live link (custom domain supported too)
 
-### After you publish: update the domain in the code
-The pages currently reference a placeholder domain: `https://www.ronakcomputerbhilwara.com/`. Once you know your real domain, do a find-and-replace for `ronakcomputerbhilwara.com` across all `.html` files and `sitemap.xml`, and swap in your actual domain. (Most code editors, and even Notepad++, have "Replace in Files".)
+### Domain
+The site is configured for **https://ronakcomputer.vercel.app/** (canonical links, Open Graph tags, sitemap.xml, robots.txt). Vercel provides HTTPS automatically. In Firebase → Authentication → Settings → **Authorized domains**, add `ronakcomputer.vercel.app`, otherwise Google Sign-In will not work on the admin panel.
 
 ---
 
@@ -72,7 +72,7 @@ Open **admin/index.html** (or click "Admin Login" in the website footer).
   - **Admin** — full access: add/edit/delete products, reset the catalogue, and add/remove other users.
   - **Editor** — can add and edit products, and view enquiries, but can't delete products or manage users.
   - **Viewer** — read-only: can see the product list and enquiries, but no editing.
-- One email — `ronakcomputerbhl@gmail.com` (set as `TS_BOOTSTRAP_ADMIN_EMAIL` in `assets/js/firebase-config.js`) — is your **permanent owner login** and always has full Admin access, even if something goes wrong with the Users list, so you can never get locked out.
+- One email — Two emails — `ronakcomputerbhl@gmail.com` and `techpoint.chandu@gmail.com` (set in `TS_BOOTSTRAP_ADMIN_EMAILS` in `assets/js/firebase-config.js`) — are the **permanent owner logins** and always has full Admin access, even if something goes wrong with the Users list, so you can never get locked out.
 - **To add more staff:** sign in as the owner → **Settings tab → Users** → enter their Gmail address, pick a role (Admin/Editor/Viewer), click **Add User**. No code changes or redeploying needed — it takes effect the next time they sign in. To remove someone, click **Remove** next to their name.
 - Once inside, the topbar and the Settings tab show **who is currently signed in** (name, email, photo) — so you always know which account made changes.
 - From the **Products** tab you can Add, Edit or Delete any laptop or printer — brand, model, configuration, price, photo and Available/Out of Stock status.
@@ -96,8 +96,8 @@ This connects the admin panel to **Firebase Firestore**, a free cloud database f
 **Step 0 — Enable Google Sign-In (required for the admin panel login)**
 1. In the Firebase console, go to **Build → Authentication → Get started**.
 2. Under the **Sign-in method** tab, click **Google**, toggle it **Enable**, pick a support email, and **Save**.
-3. Still in Authentication, go to **Settings → Authorized domains** and make sure your live domain (e.g. `ronakcomputerbhilwara.com`) is listed — `localhost` is already there by default for local testing.
-4. Open `assets/js/firebase-config.js` and check `TS_BOOTSTRAP_ADMIN_EMAIL` is set to your own Gmail address — this account always has full Admin access. Add any other staff later from inside the admin panel (Settings → Users) instead of editing this file.
+3. Still in Authentication, go to **Settings → Authorized domains** and make sure your live domain (`ronakcomputer.vercel.app`) is listed — `localhost` is already there by default for local testing.
+4. Open `assets/js/firebase-config.js` and check `TS_BOOTSTRAP_ADMIN_EMAILS` has your Gmail address(es) — this account always has full Admin access. Add any other staff later from inside the admin panel (Settings → Users) instead of editing this file.
 
 **Step 1 — Create a Firebase project**
 1. Go to [console.firebase.google.com](https://console.firebase.google.com) and sign in with any Google account.
@@ -128,7 +128,8 @@ This connects the admin panel to **Firebase Firestore**, a free cloud database f
            : null;
        }
        function isAdmin()  { return request.auth != null &&
-         (request.auth.token.email == 'ronakcomputerbhl@gmail.com' || myRole() == 'admin'); }
+         (request.auth.token.email == 'ronakcomputerbhl@gmail.com' ||
+          request.auth.token.email == 'techpoint.chandu@gmail.com' || myRole() == 'admin'); }
        function isEditor() { return request.auth != null && myRole() == 'editor'; }
        function isViewer() { return request.auth != null && myRole() == 'viewer'; }
        function isStaff()  { return isAdmin() || isEditor() || isViewer(); }
@@ -143,6 +144,11 @@ This connects the admin panel to **Firebase Firestore**, a free cloud database f
          allow write: if isAdmin() || isEditor();
        }
        match /leads/{leadId} {
+         allow create: if true;
+         allow read: if isStaff();
+         allow update, delete: if isAdmin();
+       }
+       match /visits/{visitId} {
          allow create: if true;
          allow read: if isStaff();
          allow update, delete: if isAdmin();
@@ -212,3 +218,15 @@ To actually appear in Google search results, after publishing:
 ## 7. Browser support & responsiveness
 
 Tested layout patterns for phones, tablets and desktops (breakpoints at 940px, 860px, 640px, 600px, 520px). Works in all modern browsers (Chrome, Edge, Safari, Firefox). No Internet Explorer support.
+
+
+---
+
+## 8. Visitors tab (who is visiting the website)
+
+Admin panel → **Visitors** tab shows, live: people online in the last 5 minutes, views and unique visitors today, most visited pages, and a list of recent visits (time, page, approximate city/country, device/browser/OS, traffic source, new vs returning).
+
+- Every public page logs one visit per browser session to the Firestore `visits` collection (see `ts_trackVisit()` in `assets/js/main.js`).
+- No IP address, name or phone number is stored — only approximate location from a free geo-IP lookup (ipapi.co).
+- Visits from a browser where you have logged into the admin panel are not counted.
+- **Required:** publish the updated rules from `firestore.rules` (it adds the `visits` section) in Firebase → Firestore → Rules, or the Visitors tab will stay empty.

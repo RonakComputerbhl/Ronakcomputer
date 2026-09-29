@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function myRole() {
+      return exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+        ? get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.role
+        : null;
+    }
+    function isOwner()  { return request.auth != null &&
+      (request.auth.token.email == 'ronakcomputerbhl@gmail.com' ||
+       request.auth.token.email == 'techpoint.chandu@gmail.com'); }
+    function isAdmin()  { return isOwner() || (request.auth != null && myRole() == 'admin'); }
+    function isEditor() { return request.auth != null && myRole() == 'editor'; }
+    function isViewer() { return request.auth != null && myRole() == 'viewer'; }
+    function isStaff()  { return isAdmin() || isEditor() || isViewer(); }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update: if isAdmin() || isEditor();
+      allow delete: if isAdmin();
+    }
+    match /meta/{docId} {
+      allow read: if true;
+      allow write: if isAdmin() || isEditor();
+    }
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read: if isStaff();
+      allow update, delete: if isAdmin();
+    }
+    // NEW: website visitor log (anyone can add a visit, only staff can read)
+    match /visits/{visitId} {
+      allow create: if true;
+      allow read: if isStaff();
+      allow update, delete: if isAdmin();
+    }
+    match /admins/{email} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+  }
+}
