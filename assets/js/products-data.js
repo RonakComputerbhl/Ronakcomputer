@@ -385,6 +385,20 @@ const TSData = (function () {
     });
   }
 
+
+  /* ---- Staff profile, stored by UID (not email) under users/{uid}.
+     Only that signed-in staff member can read/write it (Firestore rules). ---- */
+  function saveMyProfile(user, role) {
+    if (!_cloudMode || !user || !user.uid) return Promise.resolve(false);
+    return _db.collection('users').doc(user.uid).set({
+      name: user.displayName || '', email: (user.email || '').toLowerCase(),
+      role: role || '', lastLogin: new Date().toISOString()
+    }, { merge: true }).then(() => true).catch(function (err) {
+      console.warn('Ronak Computer: could not save staff profile', err);
+      return false;
+    });
+  }
+
   /* ---- Staff roles (Admin / Editor / Viewer), stored in Firestore
      so they can be managed from the Settings → Users tab without
      ever touching code. Not available in local-only mode (no cloud
@@ -431,7 +445,7 @@ const TSData = (function () {
     getAll, getByCategory, getById, getFeatured,
     save, remove, resetToDefaults, makeId, fmtPrice,
     saveLead, getLeads, subscribeLeads,
-    saveVisit, subscribeVisits,
+    saveVisit, subscribeVisits, saveMyProfile,
     getMyRole, subscribeAdmins, setUserRole, removeUserRole
   };
 })();

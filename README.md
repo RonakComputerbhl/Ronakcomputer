@@ -116,50 +116,7 @@ This connects the admin panel to **Firebase Firestore**, a free cloud database f
 5. Open `assets/js/firebase-config.js` in this project and paste your values into `TS_FIREBASE_CONFIG`, replacing the `YOUR_...` placeholders.
 
 **Step 4 — Set the security rules**
-1. Back in **Firestore Database → Rules** tab, replace the contents with:
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-
-       function myRole() {
-         return exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
-           ? get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.role
-           : null;
-       }
-       function isAdmin()  { return request.auth != null &&
-         (request.auth.token.email == 'ronakcomputerbhl@gmail.com' ||
-          request.auth.token.email == 'techpoint.chandu@gmail.com' || myRole() == 'admin'); }
-       function isEditor() { return request.auth != null && myRole() == 'editor'; }
-       function isViewer() { return request.auth != null && myRole() == 'viewer'; }
-       function isStaff()  { return isAdmin() || isEditor() || isViewer(); }
-
-       match /products/{productId} {
-         allow read: if true;
-         allow create, update: if isAdmin() || isEditor();
-         allow delete: if isAdmin();
-       }
-       match /meta/{docId} {
-         allow read: if true;
-         allow write: if isAdmin() || isEditor();
-       }
-       match /leads/{leadId} {
-         allow create: if true;
-         allow read: if isStaff();
-         allow update, delete: if isAdmin();
-       }
-       match /visits/{visitId} {
-         allow create: if true;
-         allow read: if isStaff();
-         allow update, delete: if isAdmin();
-       }
-       match /admins/{email} {
-         allow read: if isStaff();
-         allow write: if isAdmin();
-       }
-     }
-   }
-   ```
+1. Back in **Firestore Database → Rules** tab, delete everything and paste the full contents of the **`firestore.rules`** file from this project (it is the single, up-to-date copy of the rules).
 2. Click **Publish**.
 
    > **Why this rule?** Everyone can still *read* the catalogue and *create* an enquiry (how customers browse and contact you) — but products/enquiries can only be changed by someone signed in whose email is either the permanent owner account, or listed with a role in the `admins` collection (which you manage from Settings → Users in the admin panel — no need to ever touch this rule text again). Admins get full access; Editors can add/edit but not delete; Viewers can only read. This is enforced by Google's servers, not just hidden in the browser — so it's real security, matching the admin panel's Google Sign-In.
@@ -230,3 +187,16 @@ Admin panel → **Visitors** tab shows, live: people online in the last 5 minute
 - No IP address, name or phone number is stored — only approximate location from a free geo-IP lookup (ipapi.co).
 - Visits from a browser where you have logged into the admin panel are not counted.
 - **Required:** publish the updated rules from `firestore.rules` (it adds the `visits` section) in Firebase → Firestore → Rules, or the Visitors tab will stay empty.
+
+---
+
+## 9. Data security (who can see what)
+
+- **Public (no login):** customers can read products, and can only *add* an enquiry or a visit — never read, change or delete them. Enquiry/visit fields and lengths are validated by the rules, so nobody can stuff junk data.
+- **Staff only:** enquiries, visitors and the staff list are readable only by signed-in staff (Admin / Editor / Viewer). Only Admin can delete.
+- **Verified email required:** every staff check also requires `email_verified`, so someone can't sign in with an unverified account using the owner's email.
+- **Per-user data by UID:** each staff member's profile is saved at `users/{uid}` (UID, never email) and only that person can read it.
+- **Everything else is denied** — there is no `allow read, write: if true` anywhere.
+- **On logout** the admin screen and any cached enquiries are cleared, so the next person on that computer sees nothing.
+- The staff list itself (`admins/{email}`) stays email-keyed on purpose: you must be able to invite someone by Gmail *before* they have ever signed in, so their UID doesn't exist yet. It is protected by the verified-email rule above.
+- Firebase Authentication → Settings → User account linking: keep **"Link accounts that use the same email"** selected. Only Google sign-in is used here, so this is already fine.

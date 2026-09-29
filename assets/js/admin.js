@@ -97,6 +97,22 @@ function ts_showLoginScreen() {
   document.getElementById('adminUserBadge').style.display = 'none';
   if (ts_unsubAdmins) { ts_unsubAdmins(); ts_unsubAdmins = null; }
   if (ts_unsubVisits) { ts_unsubVisits(); ts_unsubVisits = null; }
+  ts_clearAdminScreen();
+}
+
+/* On logout / unauthorised login: wipe everything the previous user saw,
+   so the next person on this browser can never see leftover data. */
+function ts_clearAdminScreen() {
+  ts_visitsAll = [];
+  ['adminTableBody', 'visitorsBody', 'leadsList', 'usersList', 'vsTopPages'].forEach(function (id) {
+    const el = document.getElementById(id); if (el) el.innerHTML = '';
+  });
+  ['statTotal', 'statLaptops', 'statPrinters', 'statOut', 'vsOnline', 'vsToday', 'vsTodayUniq', 'vsTotal', 'vsUniq',
+   'adminUserName', 'adminUserEmail', 'settingsUserName', 'settingsUserEmail'].forEach(function (id) {
+    const el = document.getElementById(id); if (el) el.textContent = (id.indexOf('stat') === 0 || id.indexOf('vs') === 0) ? '0' : '';
+  });
+  const photo = document.getElementById('adminUserPhoto'); if (photo) photo.removeAttribute('src');
+  try { localStorage.removeItem('ronakcomputer_leads_v1'); } catch (e) {}
 }
 
 const TS_ROLE_LABEL = { admin: 'Admin', editor: 'Editor', viewer: 'Viewer' };
@@ -117,6 +133,7 @@ function ts_showDashboard(user) {
   if (sEmail) sEmail.textContent = user.email || '';
 
   ts_applyRoleGating();
+  TSData.saveMyProfile(user, ts_currentRole);
 
   const usersCard = document.getElementById('usersCard');
   if (usersCard) usersCard.style.display = ts_currentRole === 'admin' ? 'block' : 'none';

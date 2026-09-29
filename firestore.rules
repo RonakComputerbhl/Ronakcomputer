@@ -2,19 +2,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------- helpers ----------
+    // Must be signed in with a VERIFIED email (Google accounts always are).
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function myEmail() { return request.auth.token.email.lower(); }
     function myRole() {
-      return exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
-        ? get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.role
+      return exists(/databases/$(database)/documents/admins/$(myEmail()))
+        ? get(/databases/$(database)/documents/admins/$(myEmail())).data.role
         : null;
     }
-    function isOwner()  { return request.auth != null &&
-      (request.auth.token.email == 'ronakcomputerbhl@gmail.com' ||
-       request.auth.token.email == 'techpoint.chandu@gmail.com'); }
-    function isAdmin()  { return isOwner() || (request.auth != null && myRole() == 'admin'); }
-    function isEditor() { return request.auth != null && myRole() == 'editor'; }
-    function isViewer() { return request.auth != null && myRole() == 'viewer'; }
+    function isOwner() {
+      return signedIn() &&
+        (myEmail() == 'ronakcomputerbhl@gmail.com' ||
+         myEmail() == 'techpoint.chandu@gmail.com');
+    }
+    function isAdmin()  { return isOwner() || (signedIn() && myRole() == 'admin'); }
+    function isEditor() { return signedIn() && myRole() == 'editor'; }
+    function isViewer() { return signedIn() && myRole() == 'viewer'; }
     function isStaff()  { return isAdmin() || isEditor() || isViewer(); }
+    function short(v, n) { return v is string && v.size() <= n; }
 
+    // ---------- public catalogue: everyone reads, only staff writes ----------
     match /products/{productId} {
       allow read: if true;
       allow create, update: if isAdmin() || isEditor();
@@ -24,20 +34,45 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin() || isEditor();
     }
+
+    // ---------- customer enquiries: anyone can send, only staff can read ----------
     match /leads/{leadId} {
-      allow create: if true;
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['date','type','product','name','phone','device','issue','message'])
+                    && short(request.resource.data.get('name', ''), 100)
+                    && short(request.resource.data.get('phone', ''), 30)
+                    && short(request.resource.data.get('message', ''), 2000)
+                    && short(request.resource.data.get('issue', ''), 2000)
+                    && short(request.resource.data.get('product', ''), 300)
+                    && short(request.resource.data.get('device', ''), 100);
       allow read: if isStaff();
       allow update, delete: if isAdmin();
     }
-    // NEW: website visitor log (anyone can add a visit, only staff can read)
+
+    // ---------- website visitor log: anyone can add one, only staff can read ----------
     match /visits/{visitId} {
-      allow create: if true;
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['date','page','title','visitorId','returning','device','browser','os',
+                          'screen','language','timezone','source','city','region','country'])
+                    && short(request.resource.data.get('page', ''), 300)
+                    && short(request.resource.data.get('title', ''), 300)
+                    && short(request.resource.data.get('visitorId', ''), 60)
+                    && short(request.resource.data.get('source', ''), 200);
       allow read: if isStaff();
       allow update, delete: if isAdmin();
     }
+
+    // ---------- staff list (keyed by verified email; only admins manage it) ----------
     match /admins/{email} {
       allow read: if isStaff();
       allow write: if isAdmin();
     }
+
+    // ---------- per-staff private data, keyed by UID (only that person) ----------
+    match /users/{userId}/{document=**} {
+      allow read, write: if isStaff() && request.auth.uid == userId;
+    }
+
+    // Everything not listed above is denied automatically.
   }
 }
