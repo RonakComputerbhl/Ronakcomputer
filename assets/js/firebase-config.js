@@ -25,12 +25,13 @@
    ============================================================ */
 
 const TS_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDcfW1NmudLgOvzSa33StBuJskoVqRnFis",
-  authDomain: "techsmart-website-c0528.firebaseapp.com",
-  projectId: "techsmart-website-c0528",
-  storageBucket: "techsmart-website-c0528.firebasestorage.app",
-  messagingSenderId: "737865016288",
-  appId: "1:737865016288:web:f99949ff39a8197af5c185"
+  apiKey: "AIzaSyAbieA6bu9xusMUJ3dtkTZzD95WXPSMbWk",
+  authDomain: "ronakcomputer-006.firebaseapp.com",
+  projectId: "ronakcomputer-006",
+  storageBucket: "ronakcomputer-006.firebasestorage.app",
+  messagingSenderId: "548541834956",
+  appId: "1:548541834956:web:1617a74f53a6e7bf128469",
+  measurementId: "G-E1QG77XW9J"
 };
 
 /* ============================================================
