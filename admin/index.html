@@ -71,7 +71,7 @@
     <div class="admin-tabs">
       <button class="admin-tab-btn active" data-tab="products">Products</button>
       <button class="admin-tab-btn" data-tab="visitors">Visitors</button>
-      <button class="admin-tab-btn" data-tab="leads">Enquiries</button>
+      <button class="admin-tab-btn" data-tab="leads">Enquiries <span class="tab-badge" id="leadsBadge" style="display:none;">0</span></button>
       <button class="admin-tab-btn" data-tab="settings">Settings</button>
     </div>
 
@@ -131,7 +131,7 @@
     <div class="admin-tab-panel" id="tab-leads">
       <div class="admin-panel-card">
         <div class="admin-panel-head">
-          <h2>Recent enquiries</h2>
+          <h2>Customer enquiries <span class="admin-muted" id="leadsCount" style="font-size:.85rem; font-weight:600;"></span></h2>
         </div>
         <p class="form-note" style="margin-top:-8px;">Every enquiry submitted through this website — from any visitor, on any device — appears here in real time. Every enquiry is also always sent to you directly on WhatsApp when the customer taps "Send".</p>
         <div id="leadsList"></div>

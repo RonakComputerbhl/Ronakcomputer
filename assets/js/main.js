@@ -285,8 +285,7 @@ function ts_wireWhatsappModal() {
       `My phone: ${phone}`
     ];
     const text = encodeURIComponent(lines.join('\n'));
-    TSData.saveLead({ type: 'product', product: p.model, name, phone });
-    window.open(`https://wa.me/${TS_CONFIG.phoneWa}?text=${text}`, '_blank');
+    ts_saveLeadThenWhatsapp({ type: 'product', product: p.model + ' — ' + TSData.fmtPrice(p.price), name, phone }, `https://wa.me/${TS_CONFIG.phoneWa}?text=${text}`);
     ts_closeInquiry();
     form.reset();
   });
@@ -313,8 +312,7 @@ function ts_wireServiceForm() {
     ].filter(Boolean);
 
     const text = encodeURIComponent(lines.join('\n'));
-    TSData.saveLead({ type: 'service', name: data.name, phone: data.phone, device: data.deviceType, issue: data.issue });
-    window.open(`https://wa.me/${TS_CONFIG.phoneWa}?text=${text}`, '_blank');
+    ts_saveLeadThenWhatsapp({ type: 'service', name: data.name, phone: data.phone, device: data.deviceType, brandModel: data.brandModel || '', preferredDate: data.preferredDate || '', issue: data.issue }, `https://wa.me/${TS_CONFIG.phoneWa}?text=${text}`);
 
     form.reset();
     const success = document.getElementById('serviceSuccess');
@@ -340,8 +338,7 @@ function ts_wireContactForm() {
       `Message: ${data.message}`
     ];
     const text = encodeURIComponent(lines.join('\n'));
-    TSData.saveLead({ type: 'contact', name: data.name, phone: data.phone, message: data.message });
-    window.open(`https://wa.me/${TS_CONFIG.phoneWa}?text=${text}`, '_blank');
+    ts_saveLeadThenWhatsapp({ type: 'contact', name: data.name, phone: data.phone, message: data.message }, `https://wa.me/${TS_CONFIG.phoneWa}?text=${text}`);
 
     form.reset();
     const success = document.getElementById('contactSuccess');
@@ -442,4 +439,21 @@ function ts_trackVisit() {
       send(g);
     })
     .catch(function () { if (done) return; done = true; clearTimeout(timer); send(null); });
+}
+
+
+/* Save the customer's enquiry (name + phone) FIRST, then open WhatsApp.
+   The new tab is opened immediately (so the browser doesn't block it),
+   then sent to WhatsApp once the enquiry is saved (max ~1.5s wait).
+   This guarantees the enquiry reaches the admin panel even on phones
+   where opening WhatsApp pauses the page. */
+function ts_saveLeadThenWhatsapp(lead, waUrl) {
+  let w = null;
+  try { w = window.open('about:blank', '_blank'); } catch (e) {}
+  const saved = TSData.saveLead(lead);
+  const timeout = new Promise(function (res) { setTimeout(res, 1500); });
+  Promise.race([saved, timeout]).then(function () {
+    if (w && !w.closed) { w.location.href = waUrl; }
+    else { window.location.href = waUrl; }
+  });
 }

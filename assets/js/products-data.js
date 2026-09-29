@@ -330,16 +330,27 @@ const TSData = (function () {
     } catch (e) { /* non-fatal */ }
   }
 
+  // Returns a Promise so callers can wait for the save to finish
+  // (important on phones, where opening WhatsApp can pause the page).
   function saveLead(lead) {
     const entry = Object.assign({ date: new Date().toISOString() }, lead);
     if (_cloudMode) {
-      _db.collection('leads').add(entry).catch(function (err) {
+      return _db.collection('leads').add(entry).then(() => true).catch(function (err) {
         console.warn('Ronak Computer: could not save enquiry to cloud, saving locally instead', err);
         _localSaveLead(entry);
+        return false;
       });
-      return;
     }
     _localSaveLead(entry);
+    return Promise.resolve(false);
+  }
+
+  function deleteLead(id) {
+    if (!_cloudMode || !id) return Promise.resolve(false);
+    return _db.collection('leads').doc(id).delete().then(() => true).catch(function (err) {
+      console.warn('Ronak Computer: could not delete enquiry', err);
+      return false;
+    });
   }
 
   function getLeads() {
@@ -444,7 +455,7 @@ const TSData = (function () {
     init, onUpdate, isReady, isCloud,
     getAll, getByCategory, getById, getFeatured,
     save, remove, resetToDefaults, makeId, fmtPrice,
-    saveLead, getLeads, subscribeLeads,
+    saveLead, deleteLead, getLeads, subscribeLeads,
     saveVisit, subscribeVisits, saveMyProfile,
     getMyRole, subscribeAdmins, setUserRole, removeUserRole
   };

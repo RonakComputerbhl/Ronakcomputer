@@ -108,3 +108,18 @@ table.admin-table{ width:100%; border-collapse:collapse; min-width:720px; }
 
 /* Visitors stats: 5 cards on desktop, wrap on small screens */
 @media (max-width:900px){ #tab-visitors .stat-row{ grid-template-columns:1fr 1fr !important; } }
+
+/* Enquiry cards (customer name + phone) */
+.tab-badge{ display:inline-block; min-width:20px; padding:1px 7px; margin-left:6px; border-radius:999px; background:#e11d48; color:#fff; font-size:.72rem; font-weight:700; line-height:1.5; text-align:center; }
+.lead-card{ border:1px solid rgba(14,18,32,.09); border-radius:14px; padding:14px 16px; margin-bottom:12px; background:var(--white); }
+.lead-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.lead-top .lead-date{ margin-left:auto; }
+.lead-type{ font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:999px; background:#e8f0ff; color:#1d4ed8; }
+.lead-type-service{ background:#fff4e0; color:#b45309; }
+.lead-type-contact{ background:#eaf7ee; color:#15803d; }
+.lead-new{ font-size:.68rem; font-weight:800; padding:2px 7px; border-radius:6px; background:#e11d48; color:#fff; letter-spacing:.04em; }
+.lead-who{ display:flex; flex-wrap:wrap; gap:6px 24px; margin-bottom:6px; }
+.lead-name{ font-family:var(--font-head); font-size:1.05rem; font-weight:700; color:var(--navy-900); }
+.lead-phone{ font-family:var(--font-head); font-size:1.05rem; font-weight:700; color:var(--navy-900); letter-spacing:.02em; }
+.lead-card .lead-detail{ font-size:.86rem; color:var(--ink-500); margin:4px 0 10px; line-height:1.5; }
+.lead-actions{ display:flex; gap:8px; flex-wrap:wrap; }

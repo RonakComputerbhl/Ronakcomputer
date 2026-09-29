@@ -38,13 +38,15 @@ service cloud.firestore {
     // ---------- customer enquiries: anyone can send, only staff can read ----------
     match /leads/{leadId} {
       allow create: if request.resource.data.keys().hasOnly(
-                         ['date','type','product','name','phone','device','issue','message'])
+                         ['date','type','product','name','phone','device','brandModel','preferredDate','issue','message'])
                     && short(request.resource.data.get('name', ''), 100)
                     && short(request.resource.data.get('phone', ''), 30)
                     && short(request.resource.data.get('message', ''), 2000)
                     && short(request.resource.data.get('issue', ''), 2000)
                     && short(request.resource.data.get('product', ''), 300)
-                    && short(request.resource.data.get('device', ''), 100);
+                    && short(request.resource.data.get('device', ''), 100)
+                    && short(request.resource.data.get('brandModel', ''), 200)
+                    && short(request.resource.data.get('preferredDate', ''), 50);
       allow read: if isStaff();
       allow update, delete: if isAdmin();
     }

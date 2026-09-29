@@ -440,30 +440,92 @@ function ts_removeUser(email) {
 
 /* ---------------- Leads / enquiries viewer ---------------- */
 
+let ts_leadsAll = [];
+const TS_LEAD_TYPE = { product: 'Product enquiry', service: 'Repair / service', contact: 'Message' };
+
+// Turn whatever the customer typed into digits for tel: / WhatsApp links.
+function ts_phoneDigits(phone) {
+  let d = String(phone || '').replace(/\D/g, '');
+  if (d.length === 11 && d.charAt(0) === '0') d = d.slice(1);
+  if (d.length === 10) d = '91' + d;
+  return d;
+}
+
+function ts_leadsSeenAt() {
+  try { return Number(localStorage.getItem('ts_leads_seen') || 0); } catch (e) { return 0; }
+}
+function ts_markLeadsSeen() {
+  try { localStorage.setItem('ts_leads_seen', String(Date.now())); } catch (e) {}
+  const b = document.getElementById('leadsBadge'); if (b) b.style.display = 'none';
+}
+function ts_updateLeadsBadge() {
+  const b = document.getElementById('leadsBadge'); if (!b) return;
+  const tabActive = document.querySelector('.admin-tab-btn[data-tab="leads"].active');
+  const seen = ts_leadsSeenAt();
+  const fresh = ts_leadsAll.filter(l => new Date(l.date).getTime() > seen).length;
+  if (tabActive) { ts_markLeadsSeen(); return; }
+  b.textContent = fresh; b.style.display = fresh ? 'inline-block' : 'none';
+}
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.querySelector('.admin-tab-btn[data-tab="leads"]');
+  if (btn) btn.addEventListener('click', function () { setTimeout(ts_markLeadsSeen, 0); });
+});
+
 function ts_renderLeads(leads) {
   const wrap = document.getElementById('leadsList');
   if (!wrap) return;
-  leads = leads || [];
-  if (!leads.length) {
-    wrap.innerHTML = '<div class="admin-empty">No enquiries yet. They\'ll appear here the moment a customer submits the WhatsApp or service form, from any device.</div>';
+  ts_leadsAll = leads || [];
+  const cnt = document.getElementById('leadsCount');
+  if (cnt) cnt.textContent = ts_leadsAll.length ? '(' + ts_leadsAll.length + ')' : '';
+  ts_updateLeadsBadge();
+
+  if (!ts_leadsAll.length) {
+    wrap.innerHTML = '<div class="admin-empty">No enquiries yet. When a customer fills their name &amp; phone on the website (product enquiry, repair form or contact form), it appears here instantly.</div>';
     return;
   }
-  wrap.innerHTML = leads.slice(0, 30).map(l => `
-    <div class="lead-row">
-      <div>
-        <strong>${ts_escape(l.name || '—')}</strong>
-        <span class="admin-muted"> · ${ts_escape(l.phone || '')}</span>
-        <div class="admin-muted lead-detail">
-          ${l.type === 'product' ? 'Product enquiry: ' + ts_escape(l.product || '') : ''}
-          ${l.type === 'service' ? 'Service: ' + ts_escape(l.device || '') + ' — ' + ts_escape(l.issue || '') : ''}
-          ${l.type === 'contact' ? 'Message: ' + ts_escape(l.message || '') : ''}
-        </div>
+  const seen = ts_leadsSeenAt();
+  wrap.innerHTML = ts_leadsAll.slice(0, 100).map(l => {
+    const digits = ts_phoneDigits(l.phone);
+    const isNew = new Date(l.date).getTime() > seen;
+    let detail = '';
+    if (l.type === 'product') detail = '<strong>Product:</strong> ' + ts_escape(l.product || '');
+    if (l.type === 'service') detail = '<strong>Device:</strong> ' + ts_escape(l.device || '') + (l.brandModel ? ' — ' + ts_escape(l.brandModel) : '') +
+      '<br><strong>Issue:</strong> ' + ts_escape(l.issue || '') + (l.preferredDate ? '<br><strong>Preferred date:</strong> ' + ts_escape(l.preferredDate) : '');
+    if (l.type === 'contact') detail = '<strong>Message:</strong> ' + ts_escape(l.message || '');
+    const canDelete = ts_currentRole === 'admin' && l.id;
+    return `
+    <div class="lead-card">
+      <div class="lead-top">
+        <span class="lead-type lead-type-${ts_escape(l.type || 'contact')}">${ts_escape(TS_LEAD_TYPE[l.type] || 'Enquiry')}</span>
+        ${isNew ? '<span class="lead-new">NEW</span>' : ''}
+        <span class="admin-muted lead-date">${new Date(l.date).toLocaleString('en-IN')}</span>
       </div>
-      <span class="admin-muted lead-date">${new Date(l.date).toLocaleString('en-IN')}</span>
-    </div>
-  `).join('');
+      <div class="lead-who">
+        <div class="lead-name">👤 ${ts_escape(l.name || '—')}</div>
+        <div class="lead-phone">📞 ${ts_escape(l.phone || '—')}</div>
+      </div>
+      <div class="lead-detail">${detail}</div>
+      <div class="lead-actions">
+        ${digits ? `<a class="btn btn-gold btn-sm" href="tel:+${digits}">Call</a>
+        <a class="btn btn-navy btn-sm" href="https://wa.me/${digits}" target="_blank" rel="noopener">WhatsApp</a>
+        <button class="btn btn-ghost btn-sm" onclick="ts_copyText('${ts_escape(l.phone || '')}', this)">Copy number</button>` : ''}
+        ${canDelete ? `<button class="btn btn-sm admin-btn-delete" onclick="ts_deleteLead('${ts_escape(l.id)}')">Delete</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
+function ts_copyText(text, btn) {
+  const done = function () { const old = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(() => { btn.textContent = old; }, 1500); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {} t.remove(); done(); }
+}
+
+function ts_deleteLead(id) {
+  if (ts_currentRole !== 'admin') return;
+  if (!confirm('Delete this enquiry? This cannot be undone.')) return;
+  TSData.deleteLead(id).then(function (ok) { if (!ok) alert('Could not delete — check your internet connection.'); });
+}
 
 /* ---------------- Website visitors ---------------- */
 
